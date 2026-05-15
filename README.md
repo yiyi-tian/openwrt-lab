@@ -18,6 +18,7 @@
 
 ## 目录结构说明（示例）
 
+```
 openwrt-lab/                            # 项目根目录
 ├── README.md                           # 项目说明
 ├── .gitignore                          # Git忽略规则（编译产物、临时文件）
@@ -70,3 +71,4 @@ openwrt-lab/                            # 项目根目录
 └── tests/                              # 测试脚本（可选）
     ├── test_api.sh                     # API接口测试（curl）
     └── test_firewall.sh                # 防火墙规则测试
+```
