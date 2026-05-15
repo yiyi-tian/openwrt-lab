@@ -36,10 +36,10 @@ GET /api/traffic/current
     },
     "connections": [
       {
-        "src_ip": "192.168.1.100",
-        "dst_ip": "142.250.80.46",
-        "src_port": 54321,
-        "dst_port": 443,
+        "src": "192.168.1.100",
+        "dst": "142.250.80.46",
+        "sport": 54321,
+        "dport": 443,
         "protocol": "TCP",
         "bytes_in": 20480,
         "bytes_out": 10240,
@@ -73,15 +73,39 @@ GET /api/traffic/current
 | data.total.packets_in | int | 总入站数据包数 |
 | data.total.packets_out | int | 总出站数据包数 |
 | data.connections | array | 活跃连接列表 |
-| data.connections[].src_ip | string | 源 IP 地址 |
-| data.connections[].dst_ip | string | 目标 IP 地址 |
-| data.connections[].src_port | int | 源端口号 |
-| data.connections[].dst_port | int | 目标端口号 |
-| data.connections[].protocol | string | 传输层协议（TCP/UDP） |
+| data.connections[].src | string | 源 IP 地址 |
+| data.connections[].dst | string | 目标 IP 地址 |
+| data.connections[].sport | int | 源端口号 |
+| data.connections[].dport | int | 目标端口号 |
+| data.connections[].protocol | string | 传输层协议（TCP/UDP/ICMP） |
 | data.connections[].bytes_in | int | 该连接入站字节数 |
 | data.connections[].bytes_out | int | 该连接出站字节数 |
+| data.connections[].packets_in | int | 该连接入站包数 |
+| data.connections[].packets_out | int | 该连接出站包数 |
+| data.connections[].first_seen | int | 首次出现时间戳 |
+| data.connections[].last_seen | int | 最后出现时间戳 |
 | data.top_talkers | array | 流量 Top N 主机列表 |
+| data.top_talkers[].ip | string | 主机 IP 地址 |
+| data.top_talkers[].bytes_total | int | 总流量字节数 |
+| data.top_talkers[].connections | int | 连接数 |
 
+**错误响应示例**
+
+```json
+{
+  "code": 1004,
+  "message": "Traffic data is temporarily unavailable",
+  "detail": "Failed to parse flow data: Expecting value at line 5 column 10"
+}
+```
+
+```json
+{
+  "code": 2001,
+  "message": "Internal server error",
+  "detail": "Permission denied: /tmp/flow_data.json"
+}
+```
 
 ### 1.2 获取历史流量统计
 
@@ -108,6 +132,9 @@ GET /api/traffic/history?start=1715774400&end=1715778000&interval=60
   "code": 0,
   "message": "success",
   "data": {
+    "start": 1715774400,
+    "end": 1715778000,
+    "interval": 60,
     "series": [
       {
         "timestamp": 1715774460,
@@ -125,6 +152,38 @@ GET /api/traffic/history?start=1715774400&end=1715778000&interval=60
       }
     ]
   }
+}
+```
+
+**响应字段说明**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| data.start | int | 开始时间戳 |
+| data.end | int | 结束时间戳 |
+| data.interval | int | 聚合间隔（秒） |
+| data.series | array | 时序数据点 |
+| data.series[].timestamp | int | 该数据点对应的时间戳 |
+| data.series[].bytes_in | int | 该时间窗口内的入站字节数 |
+| data.series[].bytes_out | int | 该时间窗口内的出站字节数 |
+| data.series[].packets_in | int | 该时间窗口内的入站包数 |
+| data.series[].packets_out | int | 该时间窗口内的出站包数 |
+
+**错误响应示例**
+
+```json
+{
+  "code": 1001,
+  "message": "Missing required parameter: start",
+  "detail": ""
+}
+```
+
+```json
+{
+  "code": 1001,
+  "message": "Invalid parameter: start must be a positive integer",
+  "detail": ""
 }
 ```
 
@@ -156,19 +215,65 @@ GET /api/traffic/ip/<ip_address>
     "mac": "aa:bb:cc:dd:ee:ff",
     "bytes_in": 52428800,
     "bytes_out": 104857600,
+    "packets_in": 75000,
+    "packets_out": 120000,
     "connections": 12,
+    "first_seen": 1715774400,
+    "last_seen": 1715778000,
     "protocols": {
       "TCP": 80,
       "UDP": 20
     },
     "top_destinations": [
       {
-        "dst_ip": "142.250.80.46",
-        "port": 443,
-        "bytes": 20971520
+        "dst": "142.250.80.46",
+        "dport": 443,
+        "protocol": "TCP",
+        "bytes": 20971520,
+        "bytes_percent": 40
       }
     ]
   }
+}
+```
+
+**响应字段说明**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| data.ip | string | IP 地址 |
+| data.hostname | string | 主机名（如有，可通过 ARP/NDP 或 DNS 反向解析获取） |
+| data.mac | string | MAC 地址（如有，可通过 ARP 表获取） |
+| data.bytes_in | int | 总入站字节数 |
+| data.bytes_out | int | 总出站字节数 |
+| data.packets_in | int | 总入站包数 |
+| data.packets_out | int | 总出站包数 |
+| data.connections | int | 活跃连接数 |
+| data.first_seen | int | 首次出现时间戳 |
+| data.last_seen | int | 最后出现时间戳 |
+| data.protocols | object | 协议分布（键为协议名，值为连接数占比） |
+| data.top_destinations | array | 通信最多的目标地址列表 |
+| data.top_destinations[].dst | string | 目标 IP 地址 |
+| data.top_destinations[].dport | int | 目标端口号 |
+| data.top_destinations[].protocol | string | 协议类型 |
+| data.top_destinations[].bytes | int | 通信字节数 |
+| data.top_destinations[].bytes_percent | int | 占总流量的百分比 |
+
+**错误响应示例**
+
+```json
+{
+  "code": 1001,
+  "message": "Invalid IP address format",
+  "detail": "192.168.1.999 is not a valid IPv4 address"
+}
+```
+
+```json
+{
+  "code": 1004,
+  "message": "No traffic data found for IP: 10.0.0.99",
+  "detail": ""
 }
 ```
 

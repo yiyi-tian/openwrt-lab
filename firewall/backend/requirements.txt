@@ -1,0 +1,2 @@
+sanic>=23.6.0
+sanic-cors>=2.2.0
