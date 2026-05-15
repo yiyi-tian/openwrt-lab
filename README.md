@@ -6,7 +6,7 @@
 
 - `flow-monitor/` - 流量监控程序
 - `firewall/` - 防火墙脚本 + Flask后端
-- `web-frontend/` - HTML/JS前端页面
+- `web/` - HTML/JS前端页面
 
 ## 快速开始
 
