@@ -1,0 +1,15 @@
+{
+  "name": "openwrt-network-manager",
+  "version": "1.0.0",
+  "description": "基于 OpenWrt 的网络流量监控与防火墙管理 Web 应用",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "author": "",
+  "license": "MIT"
+}
